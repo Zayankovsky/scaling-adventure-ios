@@ -9,7 +9,14 @@
 #import "FotkiCollectionViewController.h"
 #import "FotkiCollectionViewCell.h"
 
+#import <AFURLSessionManager.h>
+#import "GDataXMLNode.h"
+
 @interface FotkiCollectionViewController ()
+
+@property(nonatomic) AFURLSessionManager *atomXmlManager;
+@property(nonatomic) AFURLSessionManager *imageManager;
+@property(nonatomic) NSMutableDictionary<NSNumber *, NSURL *> *images;
 
 @end
 
@@ -26,7 +33,62 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
     // Register cell classes
     // [self.collectionView registerClass:[FotkiCollectionViewCell class] forCellWithReuseIdentifier:reuseIdentifier];
     
-    // Do any additional setup after loading the view.
+    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    
+    AFHTTPResponseSerializer *atomXmlResponseSerializer = [AFHTTPResponseSerializer serializer];
+    atomXmlResponseSerializer.acceptableContentTypes = [NSSet setWithObject:@"application/atom+xml"];
+    
+    _atomXmlManager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
+    _atomXmlManager.responseSerializer = atomXmlResponseSerializer;
+    
+    _imageManager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
+    _imageManager.responseSerializer = [AFHTTPResponseSerializer serializer];
+    
+    _images = [NSMutableDictionary dictionaryWithCapacity:100];
+    
+    [self downloadFeed:@"https://api-fotki.yandex.ru/api/podhistory/"];
+}
+
+-(void)downloadFeed:(NSString *)urlString {
+    [[_atomXmlManager dataTaskWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]
+    completionHandler:^(NSURLResponse * _Nonnull response, id _Nullable responseObject, NSError * _Nullable error) {
+        if (!error) {
+            GDataXMLDocument *document = [[GDataXMLDocument alloc] initWithData:responseObject error:nil];
+            if (document) {
+                NSArray *entries = [document.rootElement elementsForName:@"entry"];
+                [entries enumerateObjectsUsingBlock:^(id _Nonnull entry, NSUInteger idx, BOOL * _Nonnull stop) {
+                    int maxWidth = 0;
+                    NSString *href = nil;
+                    for (GDataXMLElement *img in [entry elementsForName:@"f:img"]) {
+                        int width = [img attributeForName:@"width"].stringValue.intValue;
+                        if (width > maxWidth) {
+                            maxWidth = width;
+                            href = [img attributeForName:@"href"].stringValue;
+                        }
+                    }
+                    [self downloadImage:href index:idx];
+                }];
+            }
+        }
+    }] resume];
+}
+
+-(void)downloadImage:(NSString *)urlString index:(NSUInteger)index {
+    [[_imageManager downloadTaskWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]] progress:nil
+    destination:^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
+        NSURL *cachesDirectoryURL = [[NSFileManager defaultManager] URLForDirectory:NSCachesDirectory
+                                                                           inDomain:NSUserDomainMask
+                                                                  appropriateForURL:nil
+                                                                             create:NO
+                                                                              error:nil];
+        return [cachesDirectoryURL URLByAppendingPathComponent:[response suggestedFilename]];
+    }
+    completionHandler:^(NSURLResponse * _Nonnull response, NSURL * _Nullable filePath, NSError * _Nullable error) {
+        @synchronized (_images) {
+            _images[[NSNumber numberWithLong:index]] = filePath;
+        }
+        [self.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:index inSection:0]]];
+    }] resume];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -52,13 +114,19 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
 
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return 16;
+    return 100;
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
-    UICollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
+    FotkiCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
     
-    // Configure the cell
+    NSURL *filePath = nil;
+    @synchronized (_images) {
+        filePath = _images[[NSNumber numberWithLong:indexPath.item]];
+    }
+    if (filePath) {
+        cell.image.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:filePath]];
+    }
     
     return cell;
 }

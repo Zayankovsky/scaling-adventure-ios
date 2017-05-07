@@ -13,7 +13,7 @@
         <scene sceneID="QBH-uU-WRT">
             <objects>
                 <collectionViewController id="eBz-RN-04v" customClass="FotkiCollectionViewController" sceneMemberID="viewController">
-                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" misplaced="YES" dataMode="prototypes" id="Glt-cM-er0">
+                    <collectionView key="view" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="scaleToFill" dataMode="prototypes" id="Glt-cM-er0">
                         <rect key="frame" x="0.0" y="0.0" width="320" height="568"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" white="1" alpha="1" colorSpace="calibratedWhite"/>
@@ -37,6 +37,9 @@
                                         </imageView>
                                     </subviews>
                                 </view>
+                                <connections>
+                                    <outlet property="image" destination="czG-Xg-0bo" id="XWz-Si-Eji"/>
+                                </connections>
                             </collectionViewCell>
                         </cells>
                         <connections>

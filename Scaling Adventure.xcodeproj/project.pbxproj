@@ -17,6 +17,7 @@
 		9641A0291EBA5F5400FE0D49 /* Scaling_AdventureUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9641A0281EBA5F5400FE0D49 /* Scaling_AdventureUITests.m */; };
 		96C587281EBB8CAC008B121B /* FotkiCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 96C587271EBB8CAC008B121B /* FotkiCollectionViewController.m */; };
 		96C5872B1EBB8D56008B121B /* FotkiCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 96C5872A1EBB8D56008B121B /* FotkiCollectionViewCell.m */; };
+		CB9DB98DC9A4224BD31A8852 /* libPods-Scaling Adventure.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 50CC722EFA1D36A958911E6C /* libPods-Scaling Adventure.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -37,6 +38,9 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		50CC722EFA1D36A958911E6C /* libPods-Scaling Adventure.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-Scaling Adventure.a"; sourceTree = BUILT_PRODUCTS_DIR; };
+		7384EF977C1746D5E4CFBE45 /* Pods-Scaling Adventure.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Scaling Adventure.release.xcconfig"; path = "Pods/Target Support Files/Pods-Scaling Adventure/Pods-Scaling Adventure.release.xcconfig"; sourceTree = "<group>"; };
+		7A0D6A3D133A597B8C4B0CA8 /* Pods-Scaling Adventure.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Scaling Adventure.debug.xcconfig"; path = "Pods/Target Support Files/Pods-Scaling Adventure/Pods-Scaling Adventure.debug.xcconfig"; sourceTree = "<group>"; };
 		9641A0001EBA5F5400FE0D49 /* Scaling Adventure.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Scaling Adventure.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9641A0041EBA5F5400FE0D49 /* main.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		9641A0061EBA5F5400FE0D49 /* AppDelegate.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = AppDelegate.h; sourceTree = "<group>"; };
@@ -64,6 +68,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CB9DB98DC9A4224BD31A8852 /* libPods-Scaling Adventure.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -84,6 +89,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		499BF0F83C33B54D59050E46 /* Pods */ = {
+			isa = PBXGroup;
+			children = (
+				7A0D6A3D133A597B8C4B0CA8 /* Pods-Scaling Adventure.debug.xcconfig */,
+				7384EF977C1746D5E4CFBE45 /* Pods-Scaling Adventure.release.xcconfig */,
+			);
+			name = Pods;
+			sourceTree = "<group>";
+		};
 		96419FF71EBA5F5400FE0D49 = {
 			isa = PBXGroup;
 			children = (
@@ -91,6 +105,8 @@
 				9641A01C1EBA5F5400FE0D49 /* Scaling AdventureTests */,
 				9641A0271EBA5F5400FE0D49 /* Scaling AdventureUITests */,
 				9641A0011EBA5F5400FE0D49 /* Products */,
+				499BF0F83C33B54D59050E46 /* Pods */,
+				F6FD9538ACA8D1CB9C21A69B /* Frameworks */,
 			);
 			sourceTree = "<group>";
 		};
@@ -150,6 +166,14 @@
 			path = "Scaling AdventureUITests";
 			sourceTree = "<group>";
 		};
+		F6FD9538ACA8D1CB9C21A69B /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+				50CC722EFA1D36A958911E6C /* libPods-Scaling Adventure.a */,
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
@@ -157,9 +181,12 @@
 			isa = PBXNativeTarget;
 			buildConfigurationList = 9641A02D1EBA5F5400FE0D49 /* Build configuration list for PBXNativeTarget "Scaling Adventure" */;
 			buildPhases = (
+				75E00574796ECEFEAE788B1E /* [CP] Check Pods Manifest.lock */,
 				96419FFC1EBA5F5400FE0D49 /* Sources */,
 				96419FFD1EBA5F5400FE0D49 /* Frameworks */,
 				96419FFE1EBA5F5400FE0D49 /* Resources */,
+				990CB88937387B645D162B8C /* [CP] Embed Pods Frameworks */,
+				59EB6657A8D075D086835ACE /* [CP] Copy Pods Resources */,
 			);
 			buildRules = (
 			);
@@ -277,6 +304,54 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		59EB6657A8D075D086835ACE /* [CP] Copy Pods Resources */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Copy Pods Resources";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Scaling Adventure/Pods-Scaling Adventure-resources.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+		75E00574796ECEFEAE788B1E /* [CP] Check Pods Manifest.lock */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Check Pods Manifest.lock";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "diff \"${PODS_PODFILE_DIR_PATH}/Podfile.lock\" \"${PODS_ROOT}/Manifest.lock\" > /dev/null\nif [ $? != 0 ] ; then\n    # print error to STDERR\n    echo \"error: The sandbox is not in sync with the Podfile.lock. Run 'pod install' or update your CocoaPods installation.\" >&2\n    exit 1\nfi\n";
+			showEnvVarsInLog = 0;
+		};
+		990CB88937387B645D162B8C /* [CP] Embed Pods Frameworks */ = {
+			isa = PBXShellScriptBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputPaths = (
+			);
+			name = "[CP] Embed Pods Frameworks";
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "\"${SRCROOT}/Pods/Target Support Files/Pods-Scaling Adventure/Pods-Scaling Adventure-frameworks.sh\"\n";
+			showEnvVarsInLog = 0;
+		};
+/* End PBXShellScriptBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		96419FFC1EBA5F5400FE0D49 /* Sources */ = {
@@ -436,6 +511,7 @@
 		};
 		9641A02E1EBA5F5400FE0D49 /* Debug */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7A0D6A3D133A597B8C4B0CA8 /* Pods-Scaling Adventure.debug.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = "Scaling Adventure/Info.plist";
@@ -447,6 +523,7 @@
 		};
 		9641A02F1EBA5F5400FE0D49 /* Release */ = {
 			isa = XCBuildConfiguration;
+			baseConfigurationReference = 7384EF977C1746D5E4CFBE45 /* Pods-Scaling Adventure.release.xcconfig */;
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				INFOPLIST_FILE = "Scaling Adventure/Info.plist";
