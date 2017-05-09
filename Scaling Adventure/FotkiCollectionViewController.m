@@ -8,39 +8,19 @@
 
 #import "FotkiCollectionViewController.h"
 #import "FotkiCollectionViewCell.h"
-#import "Fotka.h"
+#import "FotkiDownloader.h"
 
-#import <AFURLSessionManager.h>
-#import "GDataXMLNode.h"
-
-typedef void (^FeedCompletionHandler)(NSURLResponse *response, id responseObject, NSError *error);
-typedef NSURL * (^Destination)(NSURL *targetPath, NSURLResponse *response);
-typedef void (^ImageCompletionHandler)(NSURLResponse *, NSURL *, NSError *);
+#import <UIKit/UIRefreshControl.h>
 
 @interface FotkiCollectionViewController ()
 
-@property(nonatomic) AFURLSessionManager *feedManager;
-@property(nonatomic) AFURLSessionManager *imageManager;
-@property(nonatomic) NSMutableDictionary<NSNumber *, Fotka *> *images;
+@property FotkiDownloader *downloader;
 
 @end
 
 @implementation FotkiCollectionViewController
 
 static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
-
--(Fotka *)fotkaForIndex:(NSNumber *)index {
-    Fotka *fotka;
-    @synchronized (_images) {
-        fotka = _images[index];
-        if (fotka == nil) {
-            fotka = [[Fotka alloc] init];
-            _images[index] = fotka;
-        }
-    }
-
-    return fotka;
-}
 
 - (void)viewDidLoad {
     [super viewDidLoad];
@@ -51,78 +31,34 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
     // Register cell classes
     // [self.collectionView registerClass:[FotkiCollectionViewCell class] forCellWithReuseIdentifier:reuseIdentifier];
     
-    NSURLSessionConfiguration *configuration = [NSURLSessionConfiguration defaultSessionConfiguration];
+    [self resetDownloader];
     
-    AFHTTPResponseSerializer *atomXmlResponseSerializer = [AFHTTPResponseSerializer serializer];
-    atomXmlResponseSerializer.acceptableContentTypes = [NSSet setWithObject:@"application/atom+xml"];
+    UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
+    [refreshControl addTarget:self action:@selector(refreshFeed) forControlEvents:UIControlEventValueChanged];
+    self.collectionView.refreshControl = refreshControl;
     
-    _feedManager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
-    _feedManager.responseSerializer = atomXmlResponseSerializer;
-    
-    _imageManager = [[AFURLSessionManager alloc] initWithSessionConfiguration:configuration];
-    _imageManager.responseSerializer = [AFImageResponseSerializer serializer];
-    
-    _images = [NSMutableDictionary dictionaryWithCapacity:100];
-    
-    [self downloadFeed:@"https://api-fotki.yandex.ru/api/podhistory/"];
+    [_downloader downloadFeed];
 }
 
--(void)downloadFeed:(NSString *)url {
-    FeedCompletionHandler completionHandler = ^(NSURLResponse * _Nonnull response, id _Nullable responseObject, NSError * _Nullable error) {
-        if (!error) {
-            GDataXMLDocument *document = [[GDataXMLDocument alloc] initWithData:responseObject error:nil];
-            if (document) {
-                NSArray *entries = [document.rootElement elementsForName:@"entry"];
-                [entries enumerateObjectsUsingBlock:^(id _Nonnull entry, NSUInteger idx, BOOL * _Nonnull stop) {
-                    int maxWidth = 0;
-                    NSString *href = nil;
-                    for (GDataXMLElement *img in [entry elementsForName:@"f:img"]) {
-                        int width = [img attributeForName:@"width"].stringValue.intValue;
-                        if (width > maxWidth) {
-                            maxWidth = width;
-                            href = [img attributeForName:@"href"].stringValue;
-                        }
-                    }
-                    Fotka *fotka = [self fotkaForIndex:[NSNumber numberWithUnsignedInteger:idx]];
-                    @synchronized (fotka) {
-                        fotka.url = href;
-                        if (fotka.required) {
-                            [self downloadImage:fotka index:idx];
-                        }
-                    }
-                }];
-            }
-        }
+- (void)resetDownloader {
+    [_downloader cancelDownloads];
+    
+    void (^downloadedFeedHandler)() = ^() {
+        [self.collectionView.refreshControl endRefreshing];
     };
     
-    [[_feedManager dataTaskWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:url]]
-                     completionHandler:completionHandler] resume];
+    void (^downloadedImageHandler)(NSUInteger) = ^(NSUInteger index) {
+        [self.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:index inSection:0]]];
+    };
+    
+    _downloader = [[FotkiDownloader alloc] initWithDownloadedFeedHandler:downloadedFeedHandler
+                                                  downloadedImageHandler:downloadedImageHandler];
 }
 
--(void)downloadImage:(Fotka *)fotka index:(NSUInteger)index {
-    Destination destination = ^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
-        NSURL *cachesDirectory = [[NSFileManager defaultManager] URLForDirectory:NSCachesDirectory
-                                                                        inDomain:NSUserDomainMask
-                                                               appropriateForURL:nil
-                                                                          create:NO
-                                                                           error:nil];
-
-        return [cachesDirectory URLByAppendingPathComponent:[NSString stringWithFormat:@"%lu", index]];
-    };
-    
-    ImageCompletionHandler completionHandler = ^(NSURLResponse *response, NSURL *filePath, NSError *error) {
-        if (!error) {
-            @synchronized (fotka) {
-                fotka.filePath = filePath;
-            }
-            [self.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:index inSection:0]]];
-        }
-    };
-    
-    [[_imageManager downloadTaskWithRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:fotka.url]]
-                                   progress:nil
-                                destination:destination
-                          completionHandler:completionHandler] resume];
+- (void)refreshFeed {
+    [self resetDownloader];
+    [self.collectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+    [_downloader downloadFeed];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -154,7 +90,7 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     FotkiCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
     
-    Fotka *fotka = [self fotkaForIndex:[NSNumber numberWithInteger:indexPath.item]];
+    Fotka *fotka = [_downloader fotkaForIndex:[NSNumber numberWithInteger:indexPath.item]];
     @synchronized (fotka) {
         if (fotka.filePath) {
             cell.imageView.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:fotka.filePath]];
@@ -163,7 +99,7 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
             if (!fotka.required) {
                 fotka.required = YES;
                 if (fotka.url) {
-                    [self downloadImage:fotka index:indexPath.item];
+                    [_downloader downloadImage:fotka index:indexPath.item];
                 }
             }
         }

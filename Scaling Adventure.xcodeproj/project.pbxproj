@@ -15,6 +15,7 @@
 		9641A0131EBA5F5400FE0D49 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 9641A0111EBA5F5400FE0D49 /* LaunchScreen.storyboard */; };
 		9641A01E1EBA5F5400FE0D49 /* Scaling_AdventureTests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9641A01D1EBA5F5400FE0D49 /* Scaling_AdventureTests.m */; };
 		9641A0291EBA5F5400FE0D49 /* Scaling_AdventureUITests.m in Sources */ = {isa = PBXBuildFile; fileRef = 9641A0281EBA5F5400FE0D49 /* Scaling_AdventureUITests.m */; };
+		966BFA971EC1A34300391445 /* FotkiDownloader.m in Sources */ = {isa = PBXBuildFile; fileRef = 966BFA961EC1A34300391445 /* FotkiDownloader.m */; };
 		9676456E1EC1025B00F3337F /* Fotka.m in Sources */ = {isa = PBXBuildFile; fileRef = 9676456D1EC1025B00F3337F /* Fotka.m */; };
 		96C587281EBB8CAC008B121B /* FotkiCollectionViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 96C587271EBB8CAC008B121B /* FotkiCollectionViewController.m */; };
 		96C5872B1EBB8D56008B121B /* FotkiCollectionViewCell.m in Sources */ = {isa = PBXBuildFile; fileRef = 96C5872A1EBB8D56008B121B /* FotkiCollectionViewCell.m */; };
@@ -58,6 +59,8 @@
 		9641A0241EBA5F5400FE0D49 /* Scaling AdventureUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Scaling AdventureUITests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		9641A0281EBA5F5400FE0D49 /* Scaling_AdventureUITests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Scaling_AdventureUITests.m; sourceTree = "<group>"; };
 		9641A02A1EBA5F5400FE0D49 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		966BFA961EC1A34300391445 /* FotkiDownloader.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = FotkiDownloader.m; sourceTree = "<group>"; };
+		966BFA981EC1A36500391445 /* FotkiDownloader.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FotkiDownloader.h; sourceTree = "<group>"; };
 		9676456C1EC0FFE900F3337F /* Fotka.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = Fotka.h; sourceTree = "<group>"; };
 		9676456D1EC1025B00F3337F /* Fotka.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = Fotka.m; sourceTree = "<group>"; };
 		96C587261EBB8CAC008B121B /* FotkiCollectionViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = FotkiCollectionViewController.h; sourceTree = "<group>"; };
@@ -137,6 +140,8 @@
 				96C5872A1EBB8D56008B121B /* FotkiCollectionViewCell.m */,
 				9676456C1EC0FFE900F3337F /* Fotka.h */,
 				9676456D1EC1025B00F3337F /* Fotka.m */,
+				966BFA981EC1A36500391445 /* FotkiDownloader.h */,
+				966BFA961EC1A34300391445 /* FotkiDownloader.m */,
 				9641A00F1EBA5F5400FE0D49 /* Assets.xcassets */,
 				9641A0111EBA5F5400FE0D49 /* LaunchScreen.storyboard */,
 				9641A0141EBA5F5400FE0D49 /* Info.plist */,
@@ -364,6 +369,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9641A00B1EBA5F5400FE0D49 /* ViewController.m in Sources */,
+				966BFA971EC1A34300391445 /* FotkiDownloader.m in Sources */,
 				96C5872B1EBB8D56008B121B /* FotkiCollectionViewCell.m in Sources */,
 				9641A0081EBA5F5400FE0D49 /* AppDelegate.m in Sources */,
 				9676456E1EC1025B00F3337F /* Fotka.m in Sources */,
