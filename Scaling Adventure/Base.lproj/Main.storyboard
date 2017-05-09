@@ -38,7 +38,7 @@
                                     </subviews>
                                 </view>
                                 <connections>
-                                    <outlet property="image" destination="czG-Xg-0bo" id="XWz-Si-Eji"/>
+                                    <outlet property="imageView" destination="czG-Xg-0bo" id="3hP-AT-r5r"/>
                                 </connections>
                             </collectionViewCell>
                         </cells>
