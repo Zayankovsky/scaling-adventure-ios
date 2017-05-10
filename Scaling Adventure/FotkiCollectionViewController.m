@@ -37,7 +37,7 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
     [refreshControl addTarget:self action:@selector(refreshFeed) forControlEvents:UIControlEventValueChanged];
     self.collectionView.refreshControl = refreshControl;
     
-    [_downloader downloadFeed];
+    [_downloader downloadFeed:@"https://api-fotki.yandex.ru/api/podhistory/"];
 }
 
 - (void)resetDownloader {
@@ -58,7 +58,7 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
 - (void)refreshFeed {
     [self resetDownloader];
     [self.collectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
-    [_downloader downloadFeed];
+    [_downloader downloadFeed:@"https://api-fotki.yandex.ru/api/podhistory/"];
 }
 
 - (void)didReceiveMemoryWarning {
@@ -92,13 +92,13 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
     
     Fotka *fotka = [_downloader fotkaForIndex:[NSNumber numberWithInteger:indexPath.item]];
     @synchronized (fotka) {
-        if (fotka.filePath) {
+        if (fotka.filePath && [[NSFileManager defaultManager] fileExistsAtPath:fotka.filePath.path]) {
             cell.imageView.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:fotka.filePath]];
         } else {
             cell.imageView.image = [UIImage imageNamed:@"defaultImage"];
             if (!fotka.required) {
                 fotka.required = YES;
-                if (fotka.url) {
+                if (fotka.src) {
                     [_downloader downloadImage:fotka index:indexPath.item];
                 }
             }

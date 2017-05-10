@@ -10,6 +10,24 @@
 
 @implementation Fotka
 
-@synthesize url, filePath, required;
+@synthesize src, author, filePath, required;
+
+- (instancetype)initWithCoder:(NSCoder *)coder
+{
+    self = [super init];
+    if (self) {
+        self.src = [coder decodeObjectForKey:@"src"];
+        self.author = [coder decodeObjectForKey:@"author"];
+        self.filePath = [coder decodeObjectForKey:@"filePath"];
+    }
+    return self;
+}
+
+- (void)encodeWithCoder:(NSCoder *)coder
+{
+    [coder encodeObject:self.src forKey:@"src"];
+    [coder encodeObject:self.author forKey:@"author"];
+    [coder encodeObject:self.filePath forKey:@"filePath"];
+}
 
 @end

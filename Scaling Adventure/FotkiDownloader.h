@@ -13,7 +13,7 @@
 -(instancetype)initWithDownloadedFeedHandler:(void (^)())downloadedFeedHandler
                       downloadedImageHandler:(void (^)(NSUInteger))downloadedImageHandler;
 
--(void)downloadFeed;
+-(void)downloadFeed:(NSString *)url;
 -(void)downloadImage:(Fotka *)fotka index:(NSUInteger)index;
 -(Fotka *)fotkaForIndex:(NSNumber *)index;
 -(void)cancelDownloads;

@@ -8,9 +8,10 @@
 
 #import <Foundation/Foundation.h>
 
-@interface Fotka : NSObject
+@interface Fotka : NSObject <NSCoding>
 
-@property(nonatomic) NSString *url;
+@property(nonatomic) NSString *src;
+@property(nonatomic) NSString *author;
 @property(nonatomic) NSURL *filePath;
 @property(nonatomic) BOOL required;
 
