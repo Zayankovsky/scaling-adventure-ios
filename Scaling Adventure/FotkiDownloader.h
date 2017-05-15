@@ -10,12 +10,11 @@
 
 @interface FotkiDownloader : NSObject
 
--(instancetype)initWithDownloadedFeedHandler:(void (^)())downloadedFeedHandler
+-(instancetype)initWithDownloadedFeedHandler:(void (^)(NSArray<Fotka *> *))downloadedFeedHandler
                       downloadedImageHandler:(void (^)(NSUInteger))downloadedImageHandler;
 
 -(void)downloadFeed:(NSString *)url;
 -(void)downloadImage:(Fotka *)fotka index:(NSUInteger)index;
--(Fotka *)fotkaForIndex:(NSNumber *)index;
 -(void)cancelDownloads;
 
 @end

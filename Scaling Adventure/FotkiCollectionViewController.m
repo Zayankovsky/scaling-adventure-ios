@@ -14,7 +14,11 @@
 
 @interface FotkiCollectionViewController ()
 
+@property(nonatomic) NSMutableArray<Fotka *> *images;
 @property FotkiDownloader *downloader;
+@property BOOL useBackup;
+@property NSString *backupPath;
+@property NSDateFormatter *dateFormatter;
 
 @end
 
@@ -31,34 +35,70 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
     // Register cell classes
     // [self.collectionView registerClass:[FotkiCollectionViewCell class] forCellWithReuseIdentifier:reuseIdentifier];
     
+    NSURL *cachesDirectory = [[NSFileManager defaultManager] URLForDirectory:NSCachesDirectory
+                                                                    inDomain:NSUserDomainMask
+                                                           appropriateForURL:nil
+                                                                      create:YES
+                                                                       error:nil];
+    _backupPath = [cachesDirectory URLByAppendingPathComponent:@"feed"].path;
+    _images = [NSMutableArray array];
+    
+    _dateFormatter = [[NSDateFormatter alloc] init];
+    _dateFormatter.locale = [NSLocale localeWithLocaleIdentifier:@"en_US_POSIX"];
+    _dateFormatter.dateFormat = @"yyyy-MM-dd'T'HH:mm:ss'Z'";
+    _dateFormatter.timeZone = [NSTimeZone timeZoneForSecondsFromGMT:0];
+    
     [self resetDownloader];
     
     UIRefreshControl *refreshControl = [[UIRefreshControl alloc] init];
-    [refreshControl addTarget:self action:@selector(refreshFeed) forControlEvents:UIControlEventValueChanged];
-    self.collectionView.refreshControl = refreshControl;
-    
-    [_downloader downloadFeed:@"https://api-fotki.yandex.ru/api/podhistory/"];
+    [refreshControl addTarget:self action:@selector(resetDownloader) forControlEvents:UIControlEventValueChanged];
+    self.collectionView.refreshControl = refreshControl;    
 }
 
 - (void)resetDownloader {
     [_downloader cancelDownloads];
     
-    void (^downloadedFeedHandler)() = ^() {
+    void (^downloadedFeedHandler)(NSArray<Fotka *> *) = ^(NSArray<Fotka *> *newImages) {
         [self.collectionView.refreshControl endRefreshing];
+        
+        if (!newImages) {
+            if (_useBackup && [[NSFileManager defaultManager] fileExistsAtPath:_backupPath]) {
+                newImages = [NSKeyedUnarchiver unarchiveObjectWithFile:_backupPath];
+            }
+        }
+        
+        if (newImages) {
+            _useBackup = NO;
+            NSMutableArray<NSIndexPath *> *updatedIndexes = [NSMutableArray arrayWithCapacity:[newImages count] + 1];
+
+            @synchronized (_images) {
+                for (NSUInteger index = 0; index < [newImages count]; ++index) {
+                    [updatedIndexes addObject:[NSIndexPath indexPathForItem:[_images count] + index inSection:0]];
+                }
+                [_images addObjectsFromArray:newImages];
+                [NSKeyedArchiver archiveRootObject:_images toFile:_backupPath];
+
+                [updatedIndexes addObject:[NSIndexPath indexPathForItem:[_images count] inSection:0]];
+                [_images addObject:[Fotka null]];
+                
+                [self.collectionView insertItemsAtIndexPaths:updatedIndexes];
+            }
+        }
     };
     
     void (^downloadedImageHandler)(NSUInteger) = ^(NSUInteger index) {
         [self.collectionView reloadItemsAtIndexPaths:@[[NSIndexPath indexPathForItem:index inSection:0]]];
     };
     
+    _useBackup = YES;
     _downloader = [[FotkiDownloader alloc] initWithDownloadedFeedHandler:downloadedFeedHandler
                                                   downloadedImageHandler:downloadedImageHandler];
-}
+    @synchronized (_images) {
+        [_images removeAllObjects];
+        [_images addObject:[Fotka null]];
 
-- (void)refreshFeed {
-    [self resetDownloader];
-    [self.collectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
-    [_downloader downloadFeed:@"https://api-fotki.yandex.ru/api/podhistory/"];
+        [self.collectionView reloadSections:[NSIndexSet indexSetWithIndex:0]];
+    }
 }
 
 - (void)didReceiveMemoryWarning {
@@ -84,25 +124,50 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
 
 
 - (NSInteger)collectionView:(UICollectionView *)collectionView numberOfItemsInSection:(NSInteger)section {
-    return 100;
+    @synchronized (_images) {
+        return [_images count];
+    }
 }
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     FotkiCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
-    
-    Fotka *fotka = [_downloader fotkaForIndex:[NSNumber numberWithInteger:indexPath.item]];
-    @synchronized (fotka) {
-        if (fotka.filePath && [[NSFileManager defaultManager] fileExistsAtPath:fotka.filePath.path]) {
-            cell.imageView.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:fotka.filePath]];
+    Fotka *image = nil;
+
+    @synchronized (_images) {
+        image = _images[indexPath.item];
+        if ([image isNull]) {
+            [_images removeLastObject];
+            dispatch_async(dispatch_get_main_queue(), ^{
+                [self.collectionView deleteItemsAtIndexPaths:[NSArray arrayWithObject:indexPath]];
+            });
+            image = nil;
+        }
+    }
+
+    if (image) {
+        if ([[NSFileManager defaultManager] fileExistsAtPath:image.filePath.path]) {
+            cell.imageView.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:image.filePath]];
         } else {
             cell.imageView.image = [UIImage imageNamed:@"defaultImage"];
-            if (!fotka.required) {
-                fotka.required = YES;
-                if (fotka.src) {
-                    [_downloader downloadImage:fotka index:indexPath.item];
-                }
+            if (!image.required) {
+                image.required = YES;
+                [_downloader downloadImage:image index:indexPath.item];
             }
         }
+    } else {
+        cell.imageView.image = nil;
+        NSString *url = @"https://api-fotki.yandex.ru/api/podhistory/";
+        @synchronized (_images) {
+            if ([_images count] > 0) {
+                NSDate *date = [[NSCalendar currentCalendar] dateByAddingUnit:NSCalendarUnitSecond
+                                                                        value:-1
+                                                                       toDate:[_images lastObject].date
+                                                                      options:0];
+                url = [url stringByAppendingString:[NSString stringWithFormat:@"poddate;%@/", [_dateFormatter stringFromDate:date]]];
+            }
+        }
+        
+        [_downloader downloadFeed:url];
     }
     
     return cell;

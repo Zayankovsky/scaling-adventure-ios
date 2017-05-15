@@ -8,11 +8,18 @@
 
 #import <Foundation/Foundation.h>
 
+#import "GDataXMLNode.h"
+
 @interface Fotka : NSObject <NSCoding>
 
 @property(nonatomic) NSString *src;
-@property(nonatomic) NSString *author;
+@property(nonatomic) NSDate *date;
+@property(nonatomic) NSString *authorName;
 @property(nonatomic) NSURL *filePath;
 @property(nonatomic) BOOL required;
+
++ (instancetype)null;
+- (instancetype)initWithEntry:(GDataXMLElement *)entry;
+- (BOOL)isNull;
 
 @end
