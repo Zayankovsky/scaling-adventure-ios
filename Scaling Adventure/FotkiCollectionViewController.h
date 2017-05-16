@@ -8,6 +8,6 @@
 
 #import <UIKit/UIKit.h>
 
-@interface FotkiCollectionViewController : UICollectionViewController
+@interface FotkiCollectionViewController : UICollectionViewController <UICollectionViewDelegateFlowLayout>
 
 @end

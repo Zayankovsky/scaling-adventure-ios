@@ -12,6 +12,8 @@
 
 #import <UIKit/UIRefreshControl.h>
 
+#import "math.h"
+
 @interface FotkiCollectionViewController ()
 
 @property(nonatomic) NSMutableArray<Fotka *> *images;
@@ -203,5 +205,16 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
 	
 }
 */
+
+#pragma mark <UICollectionViewDelegateFlowLayout>
+
+- (CGSize)collectionView:(UICollectionView *)collectionView
+                  layout:(UICollectionViewLayout *)collectionViewLayout
+  sizeForItemAtIndexPath:(NSIndexPath *)indexPath
+{
+    CGSize collectionViewSize = collectionView.bounds.size;
+    CGFloat size = fmin(collectionViewSize.width, collectionViewSize.height) / 4;
+    return CGSizeMake(size, size);
+}
 
 @end
