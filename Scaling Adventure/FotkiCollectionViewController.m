@@ -71,19 +71,26 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
         
         if (newImages) {
             _useBackup = NO;
-            NSMutableArray<NSIndexPath *> *updatedIndexes = [NSMutableArray arrayWithCapacity:[newImages count] + 1];
+            NSArray<NSIndexPath *> *reloadIndexes;
+            NSMutableArray<NSIndexPath *> *insertIndexes = [NSMutableArray arrayWithCapacity:[newImages count]];
 
             @synchronized (_images) {
-                for (NSUInteger index = 0; index < [newImages count]; ++index) {
-                    [updatedIndexes addObject:[NSIndexPath indexPathForItem:[_images count] + index inSection:0]];
+                [_images removeLastObject];
+                reloadIndexes = [NSArray arrayWithObject:[NSIndexPath indexPathForItem:[_images count] inSection:0]];
+                for (NSUInteger index = 1; index < [newImages count]; ++index) {
+                    [insertIndexes addObject:[NSIndexPath indexPathForItem:[_images count] + index inSection:0]];
                 }
                 [_images addObjectsFromArray:newImages];
                 [NSKeyedArchiver archiveRootObject:_images toFile:_backupPath];
 
-                [updatedIndexes addObject:[NSIndexPath indexPathForItem:[_images count] inSection:0]];
+                [insertIndexes addObject:[NSIndexPath indexPathForItem:[_images count] inSection:0]];
                 [_images addObject:[Fotka null]];
                 
-                [self.collectionView insertItemsAtIndexPaths:updatedIndexes];
+                [self.collectionView performBatchUpdates:^{
+                    [self.collectionView reloadItemsAtIndexPaths:reloadIndexes];
+                    [self.collectionView insertItemsAtIndexPaths:insertIndexes];
+                } completion:nil];
+                
             }
         }
     };
@@ -133,43 +140,38 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     FotkiCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
-    Fotka *image = nil;
 
     @synchronized (_images) {
-        image = _images[indexPath.item];
+        Fotka *image = _images[indexPath.item];
+    
         if ([image isNull]) {
-            [_images removeLastObject];
-            dispatch_async(dispatch_get_main_queue(), ^{
-                [self.collectionView deleteItemsAtIndexPaths:[NSArray arrayWithObject:indexPath]];
-            });
-            image = nil;
-        }
-    }
-
-    if (image) {
-        if ([[NSFileManager defaultManager] fileExistsAtPath:image.filePath.path]) {
-            cell.imageView.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:image.filePath]];
-        } else {
-            cell.imageView.image = [UIImage imageNamed:@"defaultImage"];
+            cell.imageView.image = nil;
             if (!image.required) {
                 image.required = YES;
-                [_downloader downloadImage:image index:indexPath.item];
+                NSString *url = @"https://api-fotki.yandex.ru/api/podhistory/";
+                if ([_images count] > 1) {
+                    NSDate *date = [[NSCalendar currentCalendar] dateByAddingUnit:NSCalendarUnitSecond
+                                                                            value:-1
+                                                                           toDate:_images[[_images count] - 2].date
+                                                                          options:0];
+                    url = [url stringByAppendingString:[NSString stringWithFormat:@"poddate;%@/", [_dateFormatter stringFromDate:date]]];
+                }
+                
+                [_downloader downloadFeed:url];
+            }
+        } else {
+            if ([[NSFileManager defaultManager] fileExistsAtPath:image.filePath.path]) {
+                cell.imageView.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:image.filePath]];
+            } else {
+                cell.imageView.image = [UIImage imageNamed:@"defaultImage"];
+                if (!image.required) {
+                    image.required = YES;
+                    if (image.size > 0) {
+                        [_downloader downloadImage:image index:indexPath.item];
+                    }
+                }
             }
         }
-    } else {
-        cell.imageView.image = nil;
-        NSString *url = @"https://api-fotki.yandex.ru/api/podhistory/";
-        @synchronized (_images) {
-            if ([_images count] > 0) {
-                NSDate *date = [[NSCalendar currentCalendar] dateByAddingUnit:NSCalendarUnitSecond
-                                                                        value:-1
-                                                                       toDate:[_images lastObject].date
-                                                                      options:0];
-                url = [url stringByAppendingString:[NSString stringWithFormat:@"poddate;%@/", [_dateFormatter stringFromDate:date]]];
-            }
-        }
-        
-        [_downloader downloadFeed:url];
     }
     
     return cell;
@@ -214,6 +216,19 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
 {
     CGSize collectionViewSize = collectionView.bounds.size;
     CGFloat size = fmin(collectionViewSize.width, collectionViewSize.height) / 4;
+
+    @synchronized (_images) {
+        Fotka *image = _images[indexPath.item];
+        if (![image isNull]) {
+            if (image.size != size) {
+                image.size = size;
+                if (image.required) {
+                    [_downloader downloadImage:image index:indexPath.item];
+                }
+            }
+        }
+    }
+    
     return CGSizeMake(size, size);
 }
 

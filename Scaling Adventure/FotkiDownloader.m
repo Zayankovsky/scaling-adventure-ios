@@ -72,7 +72,7 @@ typedef void (^ImageCompletionHandler)(NSURLResponse *, NSURL *, NSError *);
 }
 
 - (void)downloadImage:(Fotka *)image index:(NSUInteger)index {
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:image.src]];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:[image href]]];
     
     Destination destination = ^NSURL * _Nonnull(NSURL * _Nonnull targetPath, NSURLResponse * _Nonnull response) {
         return image.filePath;
