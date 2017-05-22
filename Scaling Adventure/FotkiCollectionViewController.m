@@ -140,12 +140,12 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
 
 - (UICollectionViewCell *)collectionView:(UICollectionView *)collectionView cellForItemAtIndexPath:(NSIndexPath *)indexPath {
     FotkiCollectionViewCell *cell = [collectionView dequeueReusableCellWithReuseIdentifier:reuseIdentifier forIndexPath:indexPath];
+    cell.imageView.image = nil;
 
     @synchronized (_images) {
         Fotka *image = _images[indexPath.item];
     
         if ([image isNull]) {
-            cell.imageView.image = nil;
             if (!image.required) {
                 image.required = YES;
                 NSString *url = @"https://api-fotki.yandex.ru/api/podhistory/";
@@ -163,7 +163,6 @@ static NSString * const reuseIdentifier = @"FotkiCollectionViewCell";
             if ([[NSFileManager defaultManager] fileExistsAtPath:image.filePath.path]) {
                 cell.imageView.image = [UIImage imageWithData:[NSData dataWithContentsOfURL:image.filePath]];
             } else {
-                cell.imageView.image = [UIImage imageNamed:@"defaultImage"];
                 if (!image.required) {
                     image.required = YES;
                     if (image.size > 0) {
